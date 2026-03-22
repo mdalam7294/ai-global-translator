@@ -3,378 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global AI Connect - Premium Translator</title>
+    <title>AI Global Bridge - Professional Video Translator</title>
     
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* CSS for Premium Look */
-        :root {
-            --primary: #007bff; /* Global Blue */
-            --bg: #0f172a;    /* Dark Navy */
-            --panel: #1e293b; /* Panel Gray */
-            --text: #f1f5f9;  /* Light Gray */
-            --accent: #ffc107; /* Gold for highlight */
-        }
+        :root { --primary: #00a884; --bg: #0b141a; --panel: #111b21; --accent: #007bff; --text: #e9edef; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        
+        header { background: var(--panel); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); }
+        .logo { font-size: 1.5rem; font-weight: 600; color: var(--primary); }
+        .logo span { color: #fff; }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Main Container */
-        .main-container {
-            width: 90%;
-            max-width: 1400px;
-            margin: 20px auto;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        /* Header */
-        header {
-            text-align: center;
-            padding: 20px;
-            background: var(--panel);
-            width: 100%;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-
-        header span {
-            color: var(--primary);
-        }
+        .container { padding: 20px; max-width: 1300px; margin: auto; }
 
         /* Controls Panel */
-        .controls-panel {
-            background: var(--panel);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-        }
+        .controls { background: var(--panel); padding: 20px; border-radius: 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #2a3942; background: #2a3942; color: white; font-size: 14px; outline: none; }
+        
+        button { cursor: pointer; font-weight: 600; border: none; min-width: 140px; transition: 0.3s; }
+        .btn-join { background: var(--accent); }
+        .btn-wa { background: var(--primary); }
+        .btn-rec { background: transparent; border: 1px solid #fff; }
+        .recording { background: #dc3545 !important; animation: pulse 1.5s infinite; }
 
-        .controls-panel input, .controls-panel select {
-            padding: 10px 15px;
-            background: #2d3748;
-            border: 1px solid #4a5568;
-            border-radius: 8px;
-            color: var(--text);
-            font-size: 1rem;
-            min-width: 200px;
-        }
+        /* Video Grid */
+        .video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-height: 450px; }
+        .video-card { background: #000; border-radius: 18px; position: relative; overflow: hidden; border: 2px solid #222e35; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
+        .tag { position: absolute; top: 15px; left: 15px; background: rgba(0,168,132,0.8); padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; z-index: 10; font-weight: 600; }
 
-        .controls-panel label {
-            font-size: 0.9rem;
-            color: #a0aec0;
-            margin-right: 5px;
-        }
+        /* Captions Section */
+        .captions-box { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 15px; margin-top: 25px; text-align: center; border-bottom: 4px solid var(--primary); }
+        #transText { color: #00ffcc; font-size: 1.6rem; font-weight: 600; text-shadow: 0 0 10px rgba(0,255,204,0.3); }
 
-        button {
-            padding: 10px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        #joinBtn { background-color: var(--primary); color: white; }
-        #joinBtn:hover { background-color: #0056b3; }
-
-        #transBtn { background-color: #28a745; color: white; }
-        #transBtn:hover { background-color: #1e7e34; }
-
-        #leaveBtn { background-color: #dc3545; color: white; }
-        #leaveBtn:hover { background-color: #b02a37; }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Video Section */
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-        }
-
-        .video-wrapper {
-            background: var(--panel);
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            border: 2px solid transparent;
-            aspect-ratio: 16/9;
-        }
-
-        .video-wrapper.active-call {
-            border-color: var(--primary);
-        }
-
-        .video-player {
-            width: 100%;
-            height: 100%;
-        }
-
-        .video-label {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-        }
-
-        /* Transcript Area */
-        .transcript-container {
-            background: var(--panel);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        .transcript-box {
-            min-height: 80px;
-            max-height: 200px;
-            overflow-y: auto;
-            border-bottom: 1px solid #4a5568;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-        }
-
-        .my-speech {
-            color: var(--text);
-            margin-bottom: 8px;
-            font-style: italic;
-        }
-
-        .translated-speech {
-            color: #00ffcc; /* Accent for translation */
-            font-weight: 600;
-            font-size: 1.2rem;
-        }
-
-        /* Responsive Fixes */
-        @media (max-width: 600px) {
-            .video-grid { grid-template-columns: 1fr; }
-        }
+        @keyframes pulse { 50% { opacity: 0.6; } }
+        @media (max-width: 850px) { .video-grid { grid-template-columns: 1fr; } .video-card { aspect-ratio: 16/9; } }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Global <span>AI</span> Connect</h1>
-        <p style="margin: 5px 0 0; color: #a0aec0; font-size: 0.9rem;">Real-time Multilingual Video Calls</p>
-    </header>
+<header>
+    <div class="logo">Global AI Bridge <span>| Md Alam</span></div>
+    <div id="status" style="font-size: 0.8rem; color: #8696a0;">System: Ready to Connect</div>
+</header>
 
-    <div class="main-container">
+<div class="container">
+    <div class="controls">
+        <input type="text" id="waPhone" placeholder="Partner WhatsApp (eg: 44...)">
+        <button class="btn-wa" onclick="shareLink()"><i class="fab fa-whatsapp"></i> Send Invite</button>
+        
+        <select id="mySpeech">
+            <option value="hi-IN">I Speak: Hindi</option>
+            <option value="en-US">I Speak: English</option>
+            <option value="bn-IN">I Speak: Bengali</option>
+            <option value="ur-PK">I Speak: Urdu</option>
+            <option value="ar-SA">I Speak: Arabic</option>
+            <option value="es-ES">I Speak: Spanish</option>
+            <option value="fr-FR">I Speak: French</option>
+            <option value="zh-CN">I Speak: Chinese</option>
+        </select>
 
-        <div class="controls-panel">
-            <input type="text" id="appid" placeholder="Paste Agora App ID Here">
-            <input type="text" id="channel" placeholder="Channel Name (e.g., room1)" value="global-room">
-            
-            <div class="lang-select">
-                <label>Speak:</label>
-                <select id="myLang">
-                    <option value="en-US">English</option>
-                    <option value="hi-IN">Hindi</option>
-                    <option value="es-ES">Spanish</option>
-                    <option value="fr-FR">French</option>
-                </select>
-            </div>
+        <select id="toSpeech">
+            <option value="en">Translate to: English</option>
+            <option value="hi">Translate to: Hindi</option>
+            <option value="ar">Translate to: Arabic</option>
+            <option value="es">Translate to: Spanish</option>
+            <option value="de">Translate to: German</option>
+            <option value="ru">Translate to: Russian</option>
+            <option value="ja">Translate to: Japanese</option>
+        </select>
 
-            <div class="lang-select">
-                <label>Translate To:</label>
-                <select id="targetLang">
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="de">German</option>
-                    <option value="ar">Arabic</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
-
-            <button id="joinBtn" onclick="joinCall()">Join Call</button>
-            <button id="transBtn" onclick="startTranslation()" disabled>Turn Translation ON</button>
-            <button id="leaveBtn" onclick="leaveCall()" disabled>Leave</button>
-        </div>
-
-        <div class="video-grid">
-            <div class="video-wrapper active-call">
-                <div id="local-player" class="video-player"></div>
-                <div class="video-label">You (Local)</div>
-            </div>
-            <div class="video-wrapper">
-                <div id="remote-player" class="video-player"></div>
-                <div class="video-label">Remote User</div>
-            </div>
-        </div>
-
-        <div class="transcript-container">
-            <h3>Live Transcript</h3>
-            <div class="transcript-box">
-                <div id="originalText" class="my-speech">Waiting for speech...</div>
-                <div id="translatedText" class="translated-speech">Translation will appear here...</div>
-            </div>
-        </div>
-
+        <button class="btn-join" id="mainBtn" onclick="startCall()">Start Meeting</button>
+        <button class="btn-rec" id="recBtn" onclick="handleRecording()" disabled><i class="fas fa-circle"></i> Record</button>
     </div>
 
-    <script>
-        // JavaScript Logic
-        let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-        let localTracks = { videoTrack: null, audioTrack: null };
-        let remoteUsers = {};
-        let recognition = null;
+    <div class="video-grid">
+        <div class="video-card"><div id="me" style="width:100%;height:100%"></div><div class="tag">HOST: MD ALAM</div></div>
+        <div class="video-card"><div id="partner" style="width:100%;height:100%"></div><div class="tag">REMOTE PARTNER</div></div>
+    </div>
 
-        // UI Buttons
-        const joinBtn = document.getElementById('joinBtn');
-        const transBtn = document.getElementById('transBtn');
-        const leaveBtn = document.getElementById('leaveBtn');
+    <div class="captions-box">
+        <div id="myText" style="color: #8696a0; font-size: 0.9rem;">Voice detection active...</div>
+        <div id="transText">AI Translation Output</div>
+    </div>
+</div>
 
-        async function joinCall() {
-            const APP_ID = document.getElementById('appid').value;
-            const CHANNEL = document.getElementById('channel').value;
+<script>
+    const AGORA_ID = "7ca9b8060fee4eb6a94768bc1b91334d";
+    const ROOM = "AI_Business_Executive";
+    let rtc = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+    let local = { audio: null, video: null };
+    let rec, data = [];
 
-            if(!APP_ID || !CHANNEL) return alert("Please enter both Agora App ID and Channel Name!");
+    // WhatsApp Invitation
+    function shareLink() {
+        const p = document.getElementById('waPhone').value;
+        if(!p) return alert("Phone number zaroori hai!");
+        const url = window.location.href.split('?')[0] + "?join=auto";
+        const txt = `Hello! Join my AI Video Call here: ${url}`;
+        window.open(`https://wa.me/${p}?text=${encodeURIComponent(txt)}`, '_blank');
+    }
 
-            joinBtn.disabled = true;
-
-            try {
-                // Initialize Client and Join
-                await client.join(APP_ID, CHANNEL, null);
-
-                // Create and Publish Local Tracks (Mic & Cam)
-                localTracks.audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-                localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack();
-
-                localTracks.videoTrack.play("local-player");
-                await client.publish([localTracks.audioTrack, localTracks.videoTrack]);
-
-                // Set up Remote User Handling
-                client.on("user-published", async (user, mediaType) => {
-                    await client.subscribe(user, mediaType);
-                    if (mediaType === "video") {
-                        user.videoTrack.play("remote-player");
-                        // Optional: Highlight remote window when they join
-                        document.getElementById('remote-player').parentElement.classList.add('active-call');
-                    }
-                    if (mediaType === "audio") {
-                        user.audioTrack.play();
-                    }
-                });
-
-                client.on("user-unpublished", (user) => {
-                    // Optional: Remove highlight when they leave
-                    document.getElementById('remote-player').parentElement.classList.remove('active-call');
-                });
-
-                // Update UI state
-                transBtn.disabled = false;
-                leaveBtn.disabled = false;
-
-            } catch (error) {
-                console.error("Join Failed:", error);
-                alert("Could not join the call. Check App ID and Permissions.");
-                joinBtn.disabled = false;
-            }
+    // Auto-Join for Partner
+    window.onload = () => {
+        if(new URLSearchParams(window.location.search).get('join') === 'auto') {
+            startCall();
         }
+    };
 
-        function startTranslation() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    async function startCall() {
+        try {
+            document.getElementById('status').innerText = "Accessing Camera...";
+            await rtc.join(AGORA_ID, ROOM, null);
+            
+            [local.audio, local.video] = await AgoraRTC.createMicrophoneAndCameraTracks();
+            local.video.play("me");
+            await rtc.publish([local.audio, local.video]);
 
-            if (!SpeechRecognition) return alert("Your browser doesn't support Speech Recognition. Use Chrome.");
+            rtc.on("user-published", async (user, type) => {
+                await rtc.subscribe(user, type);
+                if (type === "video") user.videoTrack.play("partner");
+                if (type === "audio") user.audioTrack.play();
+            });
 
-            recognition = new SpeechRecognition();
-            const myLang = document.getElementById('myLang').value;
-            const targetLang = document.getElementById('targetLang').value;
+            document.getElementById('status').innerText = "LIVE | Translation Syncing";
+            document.getElementById('recBtn').disabled = false;
+            runAI();
+        } catch (err) { alert("Please allow Camera & Mic access."); }
+    }
 
-            recognition.lang = myLang;
-            recognition.continuous = true;
-            recognition.interimResults = false; // Only final results
+    function runAI() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const listen = new SR();
+        listen.lang = document.getElementById('mySpeech').value;
+        listen.continuous = true;
+        listen.start();
 
-            recognition.start();
-            transBtn.innerText = "Translation IS ON";
-            transBtn.disabled = true; // Once ON, cannot easily change without restart in this basic logic
+        listen.onresult = async (e) => {
+            const raw = e.results[e.results.length - 1][0].transcript;
+            document.getElementById('myText').innerText = "Detected: " + raw;
+            
+            const lang = document.getElementById('toSpeech').value;
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${lang}&dt=t&q=${encodeURI(raw)}`);
+            const json = await res.json();
+            const result = json[0][0][0];
 
-            recognition.onresult = async (event) => {
-                const current = event.resultIndex;
-                const transcript = event.results[current][0].transcript;
-                document.getElementById('originalText').innerText = "You said: " + transcript;
+            document.getElementById('transText').innerText = result;
+            let speak = new SpeechSynthesisUtterance(result);
+            speak.lang = lang;
+            window.speechSynthesis.speak(speak);
+        };
+    }
 
-                // Simple Free Translation API Proxy (Good for testing, use Google Cloud for Pro)
-                try {
-                    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURI(transcript)}`);
-                    const data = await res.json();
-                    const translated = data[0][0][0];
-
-                    document.getElementById('translatedText').innerText = translated;
-
-                    // Text-to-Speech (Speak the translation)
-                    const utterance = new SpeechSynthesisUtterance(translated);
-                    // Match the voice language roughly to the target language
-                    utterance.lang = targetLang; 
-                    window.speechSynthesis.speak(utterance);
-                    
-                } catch (err) {
-                    console.error("Translation Error:", err);
-                    document.getElementById('translatedText').innerText = "[Translation Error]";
-                }
+    function handleRecording() {
+        const b = document.getElementById('recBtn');
+        if(!b.classList.contains('recording')) {
+            const s = new MediaStream([local.video.getMediaStreamTrack(), local.audio.getMediaStreamTrack()]);
+            rec = new MediaRecorder(s);
+            rec.ondataavailable = e => data.push(e.data);
+            rec.onstop = () => {
+                const blob = new Blob(data, {type: 'video/webm'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Meeting_${Date.now()}.webm`;
+                link.click();
             };
-
-            recognition.onerror = (event) => {
-                console.error("Speech Recognition Error:", event.error);
-                transBtn.innerText = "Error - Turn Translation ON";
-                transBtn.disabled = false;
-            };
+            rec.start();
+            b.classList.add('recording');
+            b.innerHTML = "<i class='fas fa-stop'></i> Stop";
+        } else {
+            rec.stop();
+            b.classList.remove('recording');
+            b.innerHTML = "<i class='fas fa-circle'></i> Record";
         }
-
-        async function leaveCall() {
-            // Stop Local Tracks
-            if(localTracks.audioTrack) localTracks.audioTrack.stop();
-            if(localTracks.videoTrack) localTracks.videoTrack.stop();
-            if(localTracks.audioTrack) localTracks.audioTrack.close();
-            if(localTracks.videoTrack) localTracks.videoTrack.close();
-
-            // Stop Translation
-            if(recognition) recognition.stop();
-
-            // Leave Channel
-            await client.leave();
-
-            // Reset UI
-            joinBtn.disabled = false;
-            transBtn.disabled = true;
-            transBtn.innerText = "Turn Translation ON";
-            leaveBtn.disabled = true;
-            document.getElementById('originalText').innerText = "Call ended.";
-            document.getElementById('translatedText').innerText = "...";
-            document.getElementById('remote-player').parentElement.classList.remove('active-call');
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
