@@ -3,213 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global AI Bridge | Md Alam Solutions</title>
+    <title>Global AI Bridge | Screen Share Pro</title>
     
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        :root { --primary: #00a884; --bg: #0b141a; --panel: #111b21; --accent: #007bff; --text: #e9edef; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; text-align: center; }
+        :root { --primary: #00a884; --bg: #0b141a; --panel: #111b21; --accent: #007bff; --text: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         
         header { 
-            background: var(--panel); 
-            padding: 15px; 
+            background: var(--panel); padding: 12px 20px; 
             border-bottom: 2px solid var(--primary); 
             display: flex; justify-content: space-between; align-items: center;
         }
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-left img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
-        .header-right { font-size: 0.9rem; color: var(--primary); font-weight: 600; }
+        .logo-box { display: flex; align-items: center; gap: 10px; }
+        .logo-box img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); }
 
-        .container { padding: 15px; max-width: 1250px; margin: auto; }
-        
-        .stats-bar { display: flex; justify-content: space-around; background: #1e293b; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; }
-        .stat-item span { color: var(--primary); font-weight: bold; }
+        .container { padding: 15px; max-width: 1400px; margin: auto; }
 
-        /* Controls Section */
-        .controls { background: var(--panel); padding: 20px; border-radius: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
-        
-        /* Client Hide Logic */
-        .host-only { display: block; }
-        .client-view .host-only { display: none !important; }
+        /* Zoom Style Grid */
+        #video-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 15px; margin-bottom: 20px;
+        }
+        .player-card { 
+            background: #000; border-radius: 12px; aspect-ratio: 16/9; 
+            position: relative; overflow: hidden; border: 2px solid #222e35;
+        }
+        .user-tag { 
+            position: absolute; bottom: 8px; left: 8px; 
+            background: rgba(0,0,0,0.7); padding: 3px 8px; 
+            border-radius: 4px; font-size: 0.7rem; color: var(--primary); z-index: 5;
+        }
 
-        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #2a3942; background: #2a3942; color: white; font-size: 13px; outline: none; }
+        /* Controls */
+        .tools { 
+            background: var(--panel); padding: 15px; border-radius: 12px; 
+            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+        }
         
-        button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 5px; }
-        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        /* Visibility Logic */
+        .host-tools { display: flex; gap: 10px; }
+        .is-client .host-tools { display: none !important; }
+
+        select, input, button { 
+            padding: 10px 14px; border-radius: 6px; border: 1px solid #2a3942; 
+            background: #2a3942; color: white; font-size: 13px; outline: none;
+        }
+        
+        button { background: var(--accent); cursor: pointer; font-weight: 600; border: none; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        button:hover { transform: translateY(-1px); filter: brightness(1.2); }
         .btn-wa { background: var(--primary); }
-        .btn-rec { background: transparent; border: 1px solid white; }
-        .recording { background: #dc3545 !important; animation: blink 1s infinite; }
+        .btn-screen { background: #6c757d; }
+        .btn-rec { background: transparent; border: 1px solid #fff; }
 
-        .video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .video-wrapper { background: #000; border-radius: 15px; aspect-ratio: 16/9; position: relative; overflow: hidden; border: 2px solid #222e35; }
-        .tag { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 3px 10px; border-radius: 5px; font-size: 0.75rem; color: var(--primary); font-weight: bold; z-index: 10; }
-
-        #transBox { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; margin-top: 20px; border-left: 5px solid var(--primary); }
-        #transText { color: #00ffcc; font-size: 1.6rem; font-weight: 600; text-shadow: 0 0 8px rgba(0,255,204,0.3); }
-
-        @keyframes blink { 50% { opacity: 0.6; } }
-        @media (max-width: 800px) { .video-grid { grid-template-columns: 1fr; } }
+        /* Translation Display */
+        .caption-area { background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; margin-top: 15px; border-left: 4px solid var(--primary); text-align: center; }
+        #live-translated { color: #00ffcc; font-size: 1.5rem; font-weight: 600; }
     </style>
 </head>
-<body id="mainBody">
+<body id="app-root">
 
 <header>
-    <div class="header-left">
-        <img src="https://i.ibb.co/vzYp6YV/office-logo.jpg" alt="Logo">
-        <div style="text-align: left;">
-            <h2 style="margin:0; font-size: 1.2rem;">Global AI Bridge</h2>
-            <p style="margin:0; font-size: 0.7rem; color: #8696a0;">Md Alam AI Solutions</p>
-        </div>
+    <div class="logo-box">
+        <img src="https://i.ibb.co/vzYp6YV/office-logo.jpg" alt="Md Alam Logo">
+        <div><b style="font-size: 1rem;">Global AI Bridge</b><br><small style="color:#8696a0">Md Alam Solutions</small></div>
     </div>
-    <div class="header-right" id="liveClock">00:00:00 AM</div>
+    <div id="clock" style="color: var(--primary); font-weight: 600;">00:00:00</div>
 </header>
 
 <div class="container">
-    <div class="stats-bar">
-        <div class="stat-item">Status: <span id="meetingStatus">Ready</span></div>
-        <div class="stat-item">Timer: <span id="timer">00:00</span></div>
+    <div id="video-grid">
+        <div class="player-card" id="local-container">
+            <div id="local-stream" style="width:100%;height:100%"></div>
+            <div class="user-tag" id="my-tag">YOU (HOST)</div>
+        </div>
     </div>
 
-    <div class="controls" id="controlPanel">
-        <input type="text" id="waNum" class="host-only" placeholder="Client WhatsApp (eg: 44...)">
-        <button class="btn-wa host-only" onclick="sendInvite()"><i class="fab fa-whatsapp"></i> Invite Partner</button>
-        
-        <select id="myLang">
-            <option value="en-US">My Lang: English</option>
-            <option value="hi-IN">My Lang: Hindi</option>
-            <option value="ur-PK">My Lang: Urdu</option>
-            <option value="bn-IN">My Lang: Bengali</option>
-            <option value="ar-SA">My Lang: Arabic</option>
+    <div class="tools">
+        <div class="host-tools">
+            <input type="text" id="target-phone" placeholder="WhatsApp Number">
+            <button class="btn-wa" onclick="sendMeetingInvite()"><i class="fab fa-whatsapp"></i> Invite</button>
+            <button class="btn-screen" id="screen-btn" onclick="toggleScreenShare()"><i class="fas fa-desktop"></i> Share Screen</button>
+        </div>
+
+        <select id="speak-lang">
+            <option value="en-US">I Speak: English</option>
+            <option value="hi-IN">I Speak: Hindi</option>
+            <option value="ur-PK">I Speak: Urdu</option>
         </select>
 
-        <select id="targetLang">
-            <option value="en">Translate to: English</option>
-            <option value="ur">Translate to: Urdu</option>
-            <option value="hi">Translate to: Hindi</option>
-            <option value="ar">Translate to: Arabic</option>
+        <select id="hear-lang">
+            <option value="en">Hear in: English</option>
+            <option value="hi">Hear in: Hindi</option>
+            <option value="ur">Hear in: Urdu</option>
         </select>
 
-        <button id="joinBtn" onclick="joinCall()"><i class="fas fa-video"></i> Start Meeting</button>
+        <button id="join-btn" onclick="startGlobalMeeting()"><i class="fas fa-video"></i> Join</button>
         
-        <button class="btn-rec host-only" id="recBtn" onclick="toggleRecording()" disabled><i class="fas fa-circle"></i> Record</button>
+        <div class="host-tools">
+            <button class="btn-rec" id="rec-btn" onclick="startRecordingMeeting()" disabled><i class="fas fa-circle"></i> Record</button>
+        </div>
     </div>
 
-    <div class="video-grid">
-        <div class="video-wrapper"><div id="local-player" style="width:100%;height:100%"></div><div class="tag" id="localTag">YOU</div></div>
-        <div class="video-wrapper"><div id="remote-player" style="width:100%;height:100%"></div><div class="tag" id="remoteTag">PARTNER</div></div>
-    </div>
-
-    <div id="transBox">
-        <div id="originalText" style="color: #8696a0; font-size: 0.9rem;">Waiting for speech...</div>
-        <div id="transText">Translation Ready</div>
+    <div class="caption-area">
+        <div id="detect-text" style="color: #8696a0; font-size: 0.8rem; margin-bottom: 5px;">Awaaz pehchan rahe hain...</div>
+        <div id="live-translated">Translation will appear here...</div>
     </div>
 </div>
 
 <script>
     const APP_ID = "7ca9b8060fee4eb6a94768bc1b91334d";
-    let channel = "Alam_Global_Meeting";
+    const ROOM = "Md_Alam_Global_Room";
     let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-    let localTracks = { v: null, a: null };
-    let recorder, chunks = [], startTime, timerInterval;
+    let localTracks = { video: null, audio: null, screen: null };
+    let isSharing = false;
 
-    // --- CHECK IF CLIENT ---
     window.onload = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('type') === 'client') {
-            document.body.classList.add('client-view');
-            document.getElementById('localTag').innerText = "CLIENT";
-            document.getElementById('remoteTag').innerText = "MD ALAM";
+        if(new URLSearchParams(window.location.search).get('role') === 'client') {
+            document.getElementById('app-root').classList.add('is-client');
+            document.getElementById('my-tag').innerText = "GUEST CLIENT";
         }
+        setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString(), 1000);
+        
+        // Auto-request camera
+        navigator.mediaDevices.getUserMedia({video: true, audio: true}).catch(() => alert("Camera Access Required!"));
     };
 
-    // --- Live Clock ---
-    setInterval(() => {
-        document.getElementById('liveClock').innerText = new Date().toLocaleTimeString();
-    }, 1000);
+    async function startGlobalMeeting() {
+        await client.join(APP_ID, ROOM, null);
+        localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
+        localTracks.video = await AgoraRTC.createCameraVideoTrack();
+        
+        localTracks.video.play("local-stream");
+        await client.publish([localTracks.audio, localTracks.video]);
 
-    function startTimer() {
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-            let diff = Math.floor((Date.now() - startTime) / 1000);
-            let m = Math.floor(diff / 60).toString().padStart(2, '0');
-            let s = (diff % 60).toString().padStart(2, '0');
-            document.getElementById('timer').innerText = `${m}:${s}`;
-        }, 1000);
+        client.on("user-published", async (user, type) => {
+            await client.subscribe(user, type);
+            if (type === "video") {
+                const div = document.createElement("div");
+                div.id = user.uid; div.className = "player-card";
+                div.innerHTML = `<div class="user-tag">PARTNER</div>`;
+                document.getElementById("video-grid").append(div);
+                user.videoTrack.play(div.id);
+            }
+            if (type === "audio") user.audioTrack.play();
+        });
+
+        client.on("user-left", (user) => { document.getElementById(user.uid)?.remove(); });
+
+        document.getElementById('join-btn').innerText = "LIVE";
+        document.getElementById('join-btn').disabled = true;
+        if(document.getElementById('rec-btn')) document.getElementById('rec-btn').disabled = false;
+        
+        activateAI();
     }
 
-    function sendInvite() {
-        const num = document.getElementById('waNum').value;
-        if(!num) return alert("Number daalein!");
-        // Is link mein 'type=client' add kiya gaya hai
-        const url = window.location.href.split('?')[0] + "?type=client";
-        window.open(`https://wa.me/${num}?text=${encodeURIComponent("Join my AI meeting: " + url)}`, '_blank');
+    // --- SCREEN SHARE LOGIC ---
+    async function toggleScreenShare() {
+        if (!isSharing) {
+            localTracks.screen = await AgoraRTC.createScreenVideoTrack();
+            await client.unpublish(localTracks.video);
+            await client.publish(localTracks.screen);
+            localTracks.screen.play("local-stream");
+            document.getElementById('screen-btn').innerHTML = "<i class='fas fa-stop'></i> Stop Sharing";
+            isSharing = true;
+
+            localTracks.screen.on("track-ended", () => stopScreenShare());
+        } else {
+            stopScreenShare();
+        }
     }
 
-    async function joinCall() {
-        try {
-            await client.join(APP_ID, channel, null);
-            localTracks.a = await AgoraRTC.createMicrophoneAudioTrack();
-            localTracks.v = await AgoraRTC.createCameraVideoTrack();
-            localTracks.v.play("local-player");
-            await client.publish([localTracks.a, localTracks.v]);
-            
-            client.on("user-published", async (u, t) => {
-                await client.subscribe(u, t);
-                if (t === "video") u.videoTrack.play("remote-player");
-                if (t === "audio") u.audioTrack.play();
-            });
-
-            document.getElementById('meetingStatus').innerText = "LIVE";
-            document.getElementById('joinBtn').disabled = true;
-            document.getElementById('recBtn').disabled = false;
-            startTimer();
-            startAI();
-        } catch(e) { alert("Camera allow karein!"); }
+    async function stopScreenShare() {
+        await client.unpublish(localTracks.screen);
+        localTracks.screen.close();
+        await client.publish(localTracks.video);
+        localTracks.video.play("local-stream");
+        document.getElementById('screen-btn').innerHTML = "<i class='fas fa-desktop'></i> Share Screen";
+        isSharing = false;
     }
 
-    function startAI() {
+    function activateAI() {
         const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const rec = new Speech();
-        rec.lang = document.getElementById('myLang').value;
-        rec.continuous = true;
-        rec.start();
-        rec.onresult = async (e) => {
-            const input = e.results[e.results.length - 1][0].transcript;
-            document.getElementById('originalText').innerText = "Detected: " + input;
-            const target = document.getElementById('targetLang').value;
-            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURI(input)}`);
+        const ai = new Speech();
+        ai.lang = document.getElementById('speak-lang').value;
+        ai.continuous = true;
+        ai.start();
+
+        ai.onresult = async (e) => {
+            const raw = e.results[e.results.length - 1][0].transcript;
+            document.getElementById('detect-text').innerText = "Me: " + raw;
+            const target = document.getElementById('hear-lang').value;
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURI(raw)}`);
             const data = await res.json();
-            const translated = data[0][0][0];
-            document.getElementById('transText').innerText = translated;
-            let talk = new SpeechSynthesisUtterance(translated);
-            talk.lang = target;
-            window.speechSynthesis.speak(talk);
+            const result = data[0][0][0];
+
+            document.getElementById('live-translated').innerText = result;
+            let speak = new SpeechSynthesisUtterance(result);
+            speak.lang = target;
+            window.speechSynthesis.speak(speak);
         };
     }
 
-    function toggleRecording() {
-        const btn = document.getElementById('recBtn');
-        if(!recorder || recorder.state === "inactive") {
-            const stream = new MediaStream([localTracks.v.getMediaStreamTrack(), localTracks.a.getMediaStreamTrack()]);
-            recorder = new MediaRecorder(stream);
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, {type: 'video/webm'});
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `Meeting.webm`;
-                a.click();
-            };
-            recorder.start();
-            btn.classList.add('recording');
-            btn.innerHTML = "<i class='fas fa-stop'></i> Stop";
-        } else {
-            recorder.stop();
-            btn.classList.remove('recording');
-        }
+    function sendMeetingInvite() {
+        const p = document.getElementById('target-phone').value;
+        const link = window.location.href.split('?')[0] + "?role=client";
+        window.open(`https://wa.me/${p}?text=Hi, please join my meeting: ${link}`, '_blank');
     }
 </script>
 </body>
