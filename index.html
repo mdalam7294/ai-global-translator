@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Unity Growth- Md Alam Solutions</title>
+    <title>Global AI Bridge | Md Alam Solutions</title>
     
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -25,11 +25,16 @@
 
         .container { padding: 15px; max-width: 1250px; margin: auto; }
         
-        /* Stats Bar */
         .stats-bar { display: flex; justify-content: space-around; background: #1e293b; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; }
         .stat-item span { color: var(--primary); font-weight: bold; }
 
+        /* Controls Section */
         .controls { background: var(--panel); padding: 20px; border-radius: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        
+        /* Client Hide Logic */
+        .host-only { display: block; }
+        .client-view .host-only { display: none !important; }
+
         input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #2a3942; background: #2a3942; color: white; font-size: 13px; outline: none; }
         
         button { background: var(--accent); border: none; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 5px; }
@@ -49,7 +54,7 @@
         @media (max-width: 800px) { .video-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
 <header>
     <div class="header-left">
@@ -64,31 +69,20 @@
 
 <div class="container">
     <div class="stats-bar">
-        <div class="stat-item">Meeting Status: <span id="meetingStatus">Offline</span></div>
-        <div class="stat-item">Duration: <span id="timer">00:00</span></div>
-        <div class="stat-item">Signal: <span>Excellent</span></div>
+        <div class="stat-item">Status: <span id="meetingStatus">Ready</span></div>
+        <div class="stat-item">Timer: <span id="timer">00:00</span></div>
     </div>
 
-    <div class="controls">
-        <input type="text" id="waNum" placeholder="Partner WhatsApp (eg: 44...)">
-        <button class="btn-wa" onclick="sendInvite()"><i class="fab fa-whatsapp"></i> Invite Partner</button>
+    <div class="controls" id="controlPanel">
+        <input type="text" id="waNum" class="host-only" placeholder="Client WhatsApp (eg: 44...)">
+        <button class="btn-wa host-only" onclick="sendInvite()"><i class="fab fa-whatsapp"></i> Invite Partner</button>
         
         <select id="myLang">
-            <optgroup label="English Accents">
-                <option value="en-US">English (USA)</option>
-                <option value="en-GB">English (UK)</option>
-            </optgroup>
-            <optgroup label="Local Languages">
-                <option value="hi-IN">Hindi (हिन्दी)</option>
-                <option value="ur-PK">Urdu (اردو)</option>
-                <option value="bn-IN">Bengali (বাংলা)</option>
-            </optgroup>
-            <optgroup label="Global">
-                <option value="ar-SA">Arabic (العربية)</option>
-                <option value="es-ES">Spanish</option>
-                <option value="fr-FR">French</option>
-                <option value="de-DE">German</option>
-            </optgroup>
+            <option value="en-US">My Lang: English</option>
+            <option value="hi-IN">My Lang: Hindi</option>
+            <option value="ur-PK">My Lang: Urdu</option>
+            <option value="bn-IN">My Lang: Bengali</option>
+            <option value="ar-SA">My Lang: Arabic</option>
         </select>
 
         <select id="targetLang">
@@ -96,22 +90,21 @@
             <option value="ur">Translate to: Urdu</option>
             <option value="hi">Translate to: Hindi</option>
             <option value="ar">Translate to: Arabic</option>
-            <option value="es">Translate to: Spanish</option>
-            <option value="de">Translate to: German</option>
         </select>
 
-        <button onclick="joinCall()"><i class="fas fa-video"></i> Start Meeting</button>
-        <button class="btn-rec" id="recBtn" onclick="toggleRecording()" disabled><i class="fas fa-circle"></i> Record</button>
+        <button id="joinBtn" onclick="joinCall()"><i class="fas fa-video"></i> Start Meeting</button>
+        
+        <button class="btn-rec host-only" id="recBtn" onclick="toggleRecording()" disabled><i class="fas fa-circle"></i> Record</button>
     </div>
 
     <div class="video-grid">
-        <div class="video-wrapper"><div id="local-player" style="width:100%;height:100%"></div><div class="tag">HOST: MD ALAM</div></div>
-        <div class="video-wrapper"><div id="remote-player" style="width:100%;height:100%"></div><div class="tag">PARTNER</div></div>
+        <div class="video-wrapper"><div id="local-player" style="width:100%;height:100%"></div><div class="tag" id="localTag">YOU</div></div>
+        <div class="video-wrapper"><div id="remote-player" style="width:100%;height:100%"></div><div class="tag" id="remoteTag">PARTNER</div></div>
     </div>
 
     <div id="transBox">
-        <div id="originalText" style="color: #8696a0; font-size: 0.9rem;">Voice detection active...</div>
-        <div id="transText">AI Output Ready</div>
+        <div id="originalText" style="color: #8696a0; font-size: 0.9rem;">Waiting for speech...</div>
+        <div id="transText">Translation Ready</div>
     </div>
 </div>
 
@@ -122,12 +115,21 @@
     let localTracks = { v: null, a: null };
     let recorder, chunks = [], startTime, timerInterval;
 
+    // --- CHECK IF CLIENT ---
+    window.onload = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('type') === 'client') {
+            document.body.classList.add('client-view');
+            document.getElementById('localTag').innerText = "CLIENT";
+            document.getElementById('remoteTag').innerText = "MD ALAM";
+        }
+    };
+
     // --- Live Clock ---
     setInterval(() => {
         document.getElementById('liveClock').innerText = new Date().toLocaleTimeString();
     }, 1000);
 
-    // --- Timer Logic ---
     function startTimer() {
         startTime = Date.now();
         timerInterval = setInterval(() => {
@@ -140,29 +142,32 @@
 
     function sendInvite() {
         const num = document.getElementById('waNum').value;
-        if(!num) return alert("Phone number daalein!");
-        const url = window.location.href.split('?')[0] + "?join=auto";
-        window.open(`https://wa.me/${num}?text=${encodeURIComponent("Join my AI meeting here: " + url)}`, '_blank');
+        if(!num) return alert("Number daalein!");
+        // Is link mein 'type=client' add kiya gaya hai
+        const url = window.location.href.split('?')[0] + "?type=client";
+        window.open(`https://wa.me/${num}?text=${encodeURIComponent("Join my AI meeting: " + url)}`, '_blank');
     }
 
     async function joinCall() {
-        await client.join(APP_ID, channel, null);
-        localTracks.a = await AgoraRTC.createMicrophoneAudioTrack();
-        localTracks.v = await AgoraRTC.createCameraVideoTrack();
-        localTracks.v.play("local-player");
-        await client.publish([localTracks.a, localTracks.v]);
-        
-        client.on("user-published", async (u, t) => {
-            await client.subscribe(u, t);
-            if (t === "video") u.videoTrack.play("remote-player");
-            if (t === "audio") u.audioTrack.play();
-        });
+        try {
+            await client.join(APP_ID, channel, null);
+            localTracks.a = await AgoraRTC.createMicrophoneAudioTrack();
+            localTracks.v = await AgoraRTC.createCameraVideoTrack();
+            localTracks.v.play("local-player");
+            await client.publish([localTracks.a, localTracks.v]);
+            
+            client.on("user-published", async (u, t) => {
+                await client.subscribe(u, t);
+                if (t === "video") u.videoTrack.play("remote-player");
+                if (t === "audio") u.audioTrack.play();
+            });
 
-        document.getElementById('meetingStatus').innerText = "LIVE";
-        document.getElementById('meetingStatus').style.color = "#00a884";
-        document.getElementById('recBtn').disabled = false;
-        startTimer();
-        startAI();
+            document.getElementById('meetingStatus').innerText = "LIVE";
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('recBtn').disabled = false;
+            startTimer();
+            startAI();
+        } catch(e) { alert("Camera allow karein!"); }
     }
 
     function startAI() {
@@ -173,7 +178,7 @@
         rec.start();
         rec.onresult = async (e) => {
             const input = e.results[e.results.length - 1][0].transcript;
-            document.getElementById('originalText').innerText = "Me: " + input;
+            document.getElementById('originalText').innerText = "Detected: " + input;
             const target = document.getElementById('targetLang').value;
             const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURI(input)}`);
             const data = await res.json();
@@ -195,7 +200,7 @@
                 const blob = new Blob(chunks, {type: 'video/webm'});
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `Meeting_${Date.now()}.webm`;
+                a.download = `Meeting.webm`;
                 a.click();
             };
             recorder.start();
